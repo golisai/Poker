@@ -384,7 +384,60 @@ io.sockets.on('connection', function( socket ) {
 	 * @param string message
 	 */
 	socket.on('sendMessage', function( message ) {
-		message = message.trim();
+        message = message.trim();
+
+        // Any user can send a message starting with '@:<space>' to take administrative actions.
+        // e.g.:
+        // "@: start-game"  :- starts the game
+        // "@: fold-player" :- folds the current player
+        // "@: check-player" :- checks for the current player
+        // "@: set-low-blinds 20" // sets blinds to 20/40
+        let checkCmd = message.match(/^@: (.*)/);
+        const info = '***** ADMIN ACTION: ';
+        if(checkCmd.length == 2) {
+            var tableId = players[socket.id].sittingOnTable;
+            let commands = checkCmd[1].split(/\s+/)
+            if (commands[0] != "") {
+                console.log (`command received ${commands[0]}`)
+                switch (commands[0]) {
+                    case 'start-game': {
+                        tables[tableId].gameIsOn = true;
+                        message = info + `Starting game *****`;
+                        tables[tableId].initializeRound( false );
+                        break;
+                    }
+
+                    case 'fold-player':
+                    case 'fold-active': {
+                        let pname = tables[tableId].seats[tables[tableId].public.activeSeat].public.name
+                        message = info + `Folding active player: ${pname} *****`;
+                        tables[tableId].playerFolded();
+                        break;
+                    }
+
+                    case 'check-player':
+                    case 'check-active': {
+                        let pname = tables[tableId].seats[tables[tableId].public.activeSeat].public.name
+                        message = info + `Checking active player: ${pname} *****`;
+                        tables[tableId].playerChecked();
+                        break;
+                    }
+
+                    case 'set-low-blind':
+                    case 'set-low-blinds':
+                    case 'set-small-blind':
+                    case 'set-small-blinds': {
+                        smallBlind = parseInt(commands[1]);
+                        if (smallBlind != NaN) {
+                            tables[tableId].public.smallBlind = smallBlind;
+                            tables[tableId].public.bigBlind = 2 * smallBlind;
+                            message = info + `Setting Blinds to ${tables[tableId].public.smallBlind}/${ tables[tableId].public.bigBlind} *****`;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
 		if( message && players[socket.id].room ) {
 			socket.broadcast.to( 'table-' + players[socket.id].room ).emit( 'receiveMessage', { 'message': htmlEntities( message ), 'sender': players[socket.id].public.name } );
 		}
