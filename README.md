@@ -33,8 +33,8 @@ This fork is created to continue that work
 	a. Open browser windows and connect to http://localhost:3000
 
 6. Commands
-	a. To start the game, enter <code>@: start-game</code> in the comments field.
-	b. To change the blinds: enter <code>@: set-small-blind nn</code> in the comments field
-	c. To fold a player who is stuck: enter <code>@: fold-player</code> in the comments field
-	d. To check a player who is stuck: enter <code>@: check-player</code> in the comments field
+	* To start the game, enter <code>@: start-game</code> in the comments field
+	* To change the blinds: enter <code>@: set-small-blind nn</code> in the comments field
+	* To fold a player who is stuck: enter <code>@: fold-player</code> in the comments field
+	* To check a player who is stuck: enter <code>@: check-player</code> in the comments field
 		
