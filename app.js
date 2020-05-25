@@ -393,8 +393,8 @@ io.sockets.on('connection', function( socket ) {
         // "@: check-player" :- checks for the current player
         // "@: set-low-blinds 20" // sets blinds to 20/40
         let checkCmd = message.match(/^@: (.*)/);
-        const info = '***** ADMIN ACTION: ';
-        if(checkCmd.length == 2) {
+        if(checkCmd && checkCmd.length == 2) {
+            const info = '***** ADMIN ACTION: ';
             var tableId = players[socket.id].sittingOnTable;
             let commands = checkCmd[1].split(/\s+/)
             if (commands[0] != "") {
