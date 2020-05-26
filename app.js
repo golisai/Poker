@@ -385,6 +385,10 @@ io.sockets.on('connection', function( socket ) {
 	 */
 	socket.on('sendMessage', function( message ) {
         message = message.trim();
+        if (! players[socket.id]) {
+            console.log("players[socket.id] is null")
+            return;
+        }
 
         // Any user can send a message starting with '@:<space>' to take administrative actions.
         // e.g.:
@@ -396,30 +400,46 @@ io.sockets.on('connection', function( socket ) {
         if(checkCmd && checkCmd.length == 2) {
             const info = '***** ADMIN ACTION: ';
             var tableId = players[socket.id].sittingOnTable;
-            let commands = checkCmd[1].split(/\s+/)
+            let commands = checkCmd[1].trim().split(/\s+/)
+            let unicastReply = false;
             if (commands[0] != "") {
+
                 console.log (`command received ${commands[0]}`)
                 switch (commands[0]) {
                     case 'start-game': {
-                        tables[tableId].gameIsOn = true;
-                        message = info + `Starting game *****`;
-                        tables[tableId].initializeRound( false );
+                        if (tables[tableId].gameIsOn) {
+                            message = info + ` Not starting game: The game is already on *****`;
+                        } else if (tables[tableId].playersSittingInCount <= 1) {
+                            message = info + `Not starting game: insufficient players *****`;
+                        } else {
+                            message = info + `Starting game *****`;
+                            tables[tableId].gameIsOn = true;
+                            tables[tableId].initializeRound( false );
+                        }
                         break;
                     }
 
                     case 'fold-player':
                     case 'fold-active': {
-                        let pname = tables[tableId].seats[tables[tableId].public.activeSeat].public.name
-                        message = info + `Folding active player: ${pname} *****`;
-                        tables[tableId].playerFolded();
+                        if (! tables[tableId].gameIsOn) {
+                            message = info + ` Invalid action: The game has not started *****`;
+                        } else {
+                            let pname = tables[tableId].seats[tables[tableId].public.activeSeat].public.name
+                            message = info + `Folding active player: ${pname} *****`;
+                            tables[tableId].playerFolded();
+                        }
                         break;
                     }
 
                     case 'check-player':
                     case 'check-active': {
-                        let pname = tables[tableId].seats[tables[tableId].public.activeSeat].public.name
-                        message = info + `Checking active player: ${pname} *****`;
-                        tables[tableId].playerChecked();
+                        if (! tables[tableId].gameIsOn) {
+                            message = info + ` Invalid action: The game has not started *****`;
+                        } else {
+                            let pname = tables[tableId].seats[tables[tableId].public.activeSeat].public.name
+                            message = info + `Checking active player: ${pname} *****`;
+                            tables[tableId].playerChecked();
+                        }
                         break;
                     }
 
@@ -428,19 +448,44 @@ io.sockets.on('connection', function( socket ) {
                     case 'set-small-blind':
                     case 'set-small-blinds': {
                         smallBlind = parseInt(commands[1]);
-                        if (smallBlind != NaN) {
+                        if (! isNaN(smallBlind)) {
                             tables[tableId].public.smallBlind = smallBlind;
                             tables[tableId].public.bigBlind = 2 * smallBlind;
                             message = info + `Setting Blinds to ${tables[tableId].public.smallBlind}/${ tables[tableId].public.bigBlind} *****`;
                         }
                         break;
                     }
+
+                    case '?':
+                    case 'help':
+                    case 'commands': {
+                        message = 'Commands:\n' +
+                            '- Start game: "@: start-game"\n' +
+                            '- Set blinds to 20/40:  "@: set-small-blind 20"\n' +
+                            '- Fold current player: "@: fold-player"\n' +
+                            '- Check current player: "@: check-player"\n' +
+                            '- Help: "@: help" ';
+                        unicastReply = true;
+                        break;
+                    }
+                }
+            } else {
+                console.log ("invalid command recd")
+                unicastReply = true;
+                message = info + `Invalid command *****`;
+            }
+            if( message && players[socket.id].room ) {
+                if (unicastReply) {
+                    socket.emit('receiveMessage', { 'message': htmlEntities( message ), 'sender': players[socket.id].public.name });
+                } else {
+                    io.sockets.in( 'table-' + players[socket.id].room ).emit('receiveMessage', { 'message': htmlEntities( message ), 'sender': players[socket.id].public.name } );
                 }
             }
+        } else {
+            if( message && players[socket.id].room ) {
+                socket.broadcast.to( 'table-' + players[socket.id].room ).emit( 'receiveMessage', { 'message': htmlEntities( message ), 'sender': players[socket.id].public.name } );
+            }
         }
-		if( message && players[socket.id].room ) {
-			socket.broadcast.to( 'table-' + players[socket.id].room ).emit( 'receiveMessage', { 'message': htmlEntities( message ), 'sender': players[socket.id].public.name } );
-		}
 	});
 });
 

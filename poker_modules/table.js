@@ -615,8 +615,12 @@ Table.prototype.playerSatOnTheTable = function( player, seat, chips ) {
  * @param int seat
  */
 Table.prototype.playerSatIn = function( seat ) {
+    let message = this.seats[seat].public.name + ' sat in';
+    if (!this.gameIsOn) {
+        message += '\nThe game is not started yet.\nPlease enter "<b><code>@: help</code></b>" in the chat window to see commands to start the game';
+    }
 	this.log({
-		message: this.seats[seat].public.name + ' sat in',
+		message:  message,
 		action: '',
 		seat: '',
 		notification: ''
