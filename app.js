@@ -509,7 +509,7 @@ function htmlEntities(str) {
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-tables[0] = new Table( 0, 'Sample 10-handed Table', eventEmitter(0), 10, 10, 5, 8000, 100, false );
-tables[1] = new Table( 1, 'Sample 6-handed Table', eventEmitter(1), 6, 10, 5, 8000, 20, false );
-tables[2] = new Table( 2, 'Sample 2-handed Table', eventEmitter(2), 2, 8, 4, 800, 160, false );
+tables[0] = new Table( 0, 'Table 1', eventEmitter(0), 10, 10, 5, 8000, 10, false );
+tables[1] = new Table( 1, 'Table 2', eventEmitter(1), 10, 20, 10, 8000, 10, false );
+tables[2] = new Table( 2, 'Tabke 3', eventEmitter(2), 10, 40, 20, 8000, 10, false );
 tables[3] = new Table( 3, 'Sample 6-handed Private Table', eventEmitter(3), 6, 20, 10, 2000, 400, true );
