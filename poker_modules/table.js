@@ -415,7 +415,9 @@ Table.prototype.showdown = function() {
 	var that = this;
 	setTimeout( function(){
 		that.endRound();
-	}, 10000 );
+    }, 10000 );
+
+    return (messages); // for unit tests
 };
 
 /**
